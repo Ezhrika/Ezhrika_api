@@ -1,0 +1,15 @@
+# Секреты — никогда в репозиторий
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+
+# db
