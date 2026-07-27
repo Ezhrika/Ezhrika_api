@@ -13,13 +13,13 @@ from app.models import UserRole
 
 # ── Teacher ────────────────────────────────────────────────────────────────
 class TeacherBase(BaseModel):
-    """Общие поля, которые есть и на входе, и на выходе."""
+    """Основное поле Teacher"""
     name: str
     faculty: int
 
 
 class TeacherCreate(TeacherBase):
-    """Что клиент присылает при создании преподавателя."""
+    """Поля создания преподавателя"""
     user_id: int
 
 
@@ -67,8 +67,55 @@ class AccountUpdate(BaseModel):
     login: str
     role: UserRole
 
-
 class PasswordChange(BaseModel):
     old_password: str      # текущий — для подтверждения, что это владелец
     new_password: str      # новый
 # ConsultCreate/ConsultOut, ClassroomOut и т.д. — по одной сущности за раз.
+
+class FacultyBase(BaseModel):
+    """Общие поля, факультета"""
+    name: str
+
+class FacultyCreate(FacultyBase):
+    """заготовка под будущее"""
+    pass
+class FacultyOut(FacultyBase):
+    """Что API отдаёт клиенту."""
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class StudentGroupBase(BaseModel):
+    """Общие поля, группы студентов"""
+    name: str
+class StudentGroupCreate(StudentGroupBase):
+    """заготовка под будущее"""
+    pass
+class StudentGroupOut(StudentGroupBase):
+    """Что API отдаёт клиенту."""
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CorpusBase(BaseModel):
+    """Общие поля, корпуса"""
+    name: str
+
+class CorpusCreate(CorpusBase):
+    """заготовка под будущее"""
+    pass
+class CorpusOut(CorpusBase):
+    """Что API отдаёт клиенту."""
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class ClassroomTypeBase(BaseModel):
+    """Общие поля, типа корпуса"""
+    name: str
+
+class ClassroomTypeCreate(ClassroomTypeBase):
+    """заготовка под будущее"""
+    pass
+class ClassroomTypeOut(ClassroomTypeBase):
+    """Что API отдаёт клиенту."""
+    id: int
+    model_config = ConfigDict(from_attributes=True)
