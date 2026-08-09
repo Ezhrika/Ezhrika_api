@@ -29,6 +29,10 @@ def get_corpus(corpus_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.CorpusOut, status_code=status.HTTP_201_CREATED)
 def create_corpus(data: schemas.CorpusCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.Corpus).filter(models.Corpus.name == data.name).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Корпус с таким названием уже есть")
+
     corpus = models.Corpus(**data.model_dump())
     db.add(corpus)
     db.commit()
@@ -43,6 +47,14 @@ def update_corpus(
     corpus = db.get(models.Corpus, corpus_id)
     if corpus is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Корпус не найден")
+    clash = (
+        db.query(models.Corpus)
+        .filter(models.Subject.name == data.name, models.Corpus.id != corpus_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Корпус с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(corpus, field, value)
     db.commit()

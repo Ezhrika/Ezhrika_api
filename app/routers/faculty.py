@@ -29,6 +29,10 @@ def get_faculty(faculty_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.FacultyOut, status_code=status.HTTP_201_CREATED)
 def create_faculty(data: schemas.FacultyCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.Faculty).filter(models.Faculty.name == data.name).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     faculty = models.Faculty(**data.model_dump())
     db.add(faculty)
     db.commit()
@@ -43,6 +47,14 @@ def update_faculty(
     faculty = db.get(models.Faculty, faculty_id)
     if faculty is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Факультет не найден")
+    clash = (
+        db.query(models.Faculty)
+        .filter(models.Faculty.name == data.name, models.Faculty.id != faculty_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(faculty, field, value)
     db.commit()

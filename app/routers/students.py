@@ -29,6 +29,10 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.StudentOut, status_code=status.HTTP_201_CREATED)
 def create_student(data: schemas.StudentCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.Student).filter(models.Student.name == data.name).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     student = models.Student(**data.model_dump())
     db.add(student)
     db.commit()
@@ -43,6 +47,14 @@ def update_student(
     student = db.get(models.Student, student_id)
     if student is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Студент не найден")
+    clash = (
+        db.query(models.Student)
+        .filter(models.Student.name == data.name, models.Student.id != student_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(student, field, value)
     db.commit()

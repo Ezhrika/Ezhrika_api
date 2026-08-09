@@ -29,6 +29,10 @@ def get_classroom_type(classroom_type_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.ClassroomTypeOut, status_code=status.HTTP_201_CREATED)
 def create_classroom_type(data: schemas.ClassroomTypeCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.ClassroomType).filter(models.ClassroomType.name == data.name).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Тип класса с таким названием уже есть")
+
     classroom_type = models.ClassroomType(**data.model_dump())
     db.add(classroom_type)
     db.commit()
@@ -43,6 +47,14 @@ def update_classroom_type(
     classroom_type = db.get(models.ClassroomType, classroom_type_id)
     if classroom_type is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Факультет не найден")
+    clash = (
+        db.query(models.ClassroomType)
+        .filter(models.ClassroomType.name == data.name, models.ClassroomType.id != classroom_type_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(classroom_type, field, value)
     db.commit()

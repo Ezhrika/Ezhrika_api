@@ -119,3 +119,18 @@ class ClassroomTypeOut(ClassroomTypeBase):
     """Что API отдаёт клиенту."""
     id: int
     model_config = ConfigDict(from_attributes=True)
+
+class SubjectBase(BaseModel):
+    """Общие поля, типа предмет"""
+    name: str
+    faculty: int
+
+class SubjectCreate(SubjectBase):
+    """заготовка под будущее"""
+
+    pass
+
+class SubjectOut(SubjectBase):
+    """Что API отдаёт клиенту."""
+    id: int
+    model_config = ConfigDict(from_attributes=True)

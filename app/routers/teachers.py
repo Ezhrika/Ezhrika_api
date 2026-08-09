@@ -30,6 +30,10 @@ def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.TeacherOut, status_code=status.HTTP_201_CREATED)
 def create_teacher(data: schemas.TeacherCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.Teacher).filter(models.Teacher.name == data.name).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     teacher = models.Teacher(**data.model_dump())
     db.add(teacher)
     db.commit()
@@ -44,6 +48,14 @@ def update_teacher(
     teacher = db.get(models.Teacher, teacher_id)
     if teacher is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Преподаватель не найден")
+    clash = (
+        db.query(models.Teacher)
+        .filter(models.Teacher.name == data.name, models.Teacher.id != teacher_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(teacher, field, value)
     db.commit()

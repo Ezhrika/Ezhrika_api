@@ -29,6 +29,10 @@ def get_student_group(student_group_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.StudentGroupOut, status_code=status.HTTP_201_CREATED)
 def create_student_group(data: schemas.StudentGroupCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.StudentGroup).filter(models.StudentGroup.name == data.name).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     student_group = models.StudentGroup(**data.model_dump())
     db.add(student_group)
     db.commit()
@@ -43,6 +47,14 @@ def update_student_group(
     student_group = db.get(models.StudentGroup, student_group_id)
     if student_group is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Факультет не найден")
+    clash = (
+        db.query(models.StudentGroup)
+        .filter(models.StudentGroup.name == data.name, models.StudentGroup.id != student_group_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Предмет с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(student_group, field, value)
     db.commit()

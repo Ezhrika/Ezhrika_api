@@ -8,7 +8,7 @@ Docs:    http://localhost:8000/docs
 """
 from fastapi import FastAPI
 
-from app.routers import teachers, students, account,faculty, student_group,classroom_type,corpus
+from app.routers import teachers, students, account,faculty, student_group,classroom_type,corpus,subject
 
 
 app = FastAPI(title="SmartConsult API")
@@ -21,6 +21,7 @@ app.include_router(faculty.router)
 app.include_router(student_group.router)
 app.include_router(classroom_type.router)
 app.include_router(corpus.router)
+app.include_router(subject.router)
 
 
 from app.db.base import Base

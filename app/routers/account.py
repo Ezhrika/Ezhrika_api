@@ -30,11 +30,16 @@ def get_account(account_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=schemas.AccountOut, status_code=201)
 def create_account(data: schemas.AccountCreate, db=Depends(get_db)):
+    exists = db.query(models.Account).filter(models.Account.login == data.login).first()
+    if exists:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Аккаунт с таким названием уже есть")
+
     account = models.Account(
         login=data.login,
         role=data.role,
         password_hash=generate_password_hash(data.password),  # хешируем здесь
     )
+
     db.add(account)
     db.commit()
     db.refresh(account)
@@ -48,6 +53,14 @@ def update_account(
     account = db.get(models.Account, account_id)
     if account is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Аккаунт не найден")
+    clash = (
+        db.query(models.Account)
+        .filter(models.Account.login == data.login, models.Account.id != account_id)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Аккаунт с таким названием уже есть")
+
     for field, value in data.model_dump().items():
         setattr(account, field, value)
     db.commit()
