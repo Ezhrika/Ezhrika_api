@@ -7,9 +7,8 @@
 именно оно не даёт лишним полям (например password_hash) утечь наружу,
 потому что в *Out таких полей просто нет.
 """
-from pydantic import BaseModel, ConfigDict
-from app.models import UserRole
-
+from pydantic import BaseModel, ConfigDict, Field
+from app.models import UserRole, BoardType, ScreenType
 
 # ── Teacher ────────────────────────────────────────────────────────────────
 class TeacherBase(BaseModel):
@@ -133,4 +132,25 @@ class SubjectCreate(SubjectBase):
 class SubjectOut(SubjectBase):
     """Что API отдаёт клиенту."""
     id: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClassroomBase(BaseModel):
+    name: str = Field(min_length=1, examples=["301а"])
+    corpus: int
+    capacity: int = Field(gt=0)
+    type: int
+    board: BoardType | None = None
+    screen: ScreenType = ScreenType.none
+    faculty: int | None = None
+    info: str | None = None
+
+
+class ClassroomCreate(ClassroomBase):
+    pass
+
+
+class ClassroomOut(ClassroomBase):
+    id: int
+
     model_config = ConfigDict(from_attributes=True)
