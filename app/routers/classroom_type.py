@@ -15,8 +15,11 @@ router = APIRouter(prefix="/classroom_type", tags=["classroom_type"])
 
 
 @router.get("", response_model=list[schemas.ClassroomTypeOut])
-def list_classroom_type(db: Session = Depends(get_db)):
-    return db.query(models.ClassroomType).all()
+def list_classroom_type(name: str | None = None,db: Session = Depends(get_db)):
+    q = db.query(models.ClassroomType)
+    if name:
+        q = q.filter(models.ClassroomType.name.ilike(f"%{name}%"))
+    return q.all()
 
 
 @router.get("/{classroom_type_id}", response_model=schemas.ClassroomTypeOut)

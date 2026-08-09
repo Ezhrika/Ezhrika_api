@@ -16,8 +16,11 @@ router = APIRouter(prefix="/account", tags=["account"])
 
 
 @router.get("", response_model=list[schemas.AccountOut])
-def list_account(db: Session = Depends(get_db)):
-    return db.query(models.Account).all()
+def list_account(login: str | None = None,db: Session = Depends(get_db)):
+    q = db.query(models.Account)
+    if login:
+        q = q.filter(models.Account.name.ilike(f"%{login}%"))
+    return q.all()
 
 
 @router.get("/{account_id}", response_model=schemas.AccountOut)

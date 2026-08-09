@@ -15,8 +15,11 @@ router = APIRouter(prefix="/student_group", tags=["student_group"])
 
 
 @router.get("", response_model=list[schemas.StudentGroupOut])
-def list_student_group(db: Session = Depends(get_db)):
-    return db.query(models.StudentGroup).all()
+def list_student_group(name: str | None = None,db: Session = Depends(get_db)):
+    q = db.query(models.StudentGroup)
+    if name:
+        q = q.filter(models.StudentGroup.name.ilike(f"%{name}%"))
+    return q.all()
 
 
 @router.get("/{student_group_id}", response_model=schemas.StudentGroupOut)

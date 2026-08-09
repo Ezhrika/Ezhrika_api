@@ -15,8 +15,15 @@ router = APIRouter(prefix="/students", tags=["students"])
 
 
 @router.get("", response_model=list[schemas.StudentOut])
-def list_student(db: Session = Depends(get_db)):
-    return db.query(models.Student).all()
+def list_student(name: str | None = None, student_group: int | None = None, user_id: int | None = None, db: Session = Depends(get_db)):
+    q = db.query(models.Student)
+    if name:
+        q = q.filter(models.Student.name.ilike(f"%{name}%"))
+    if student_group is not None:
+        q = q.filter(models.Student.student_group == student_group)
+    if user_id is not None:
+        q = q.filter(models.Student.user_id == user_id)
+    return q.all()
 
 
 @router.get("/{student_id}", response_model=schemas.StudentOut)

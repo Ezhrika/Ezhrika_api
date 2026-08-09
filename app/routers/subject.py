@@ -9,9 +9,14 @@ router = APIRouter(prefix="/subject", tags=["subject"])
 
 
 @router.get("", response_model=list[schemas.SubjectOut])
-def list_subject(db: Session = Depends(get_db)):
-    return db.query(models.Subject).all()
-
+def list_subject(name: str | None = None, faculty: int | None = None,
+                 db: Session = Depends(get_db)):
+    q = db.query(models.Subject)
+    if name:
+        q = q.filter(models.Subject.name.ilike(f"%{name}%"))
+    if faculty is not None:
+        q = q.filter(models.Subject.faculty == faculty)
+    return q.all()
 
 @router.get("/{subject_id}", response_model=schemas.SubjectOut)
 def get_subject(subject_id: int, db: Session = Depends(get_db)):

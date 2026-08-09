@@ -15,8 +15,11 @@ router = APIRouter(prefix="/corpus", tags=["corpus"])
 
 
 @router.get("", response_model=list[schemas.CorpusOut])
-def list_corpus(db: Session = Depends(get_db)):
-    return db.query(models.Corpus).all()
+def list_corpus(name: str | None = None,db: Session = Depends(get_db)):
+    q = db.query(models.Corpus)
+    if name:
+        q = q.filter(models.Corpus.name.ilike(f"%{name}%"))
+    return q.all()
 
 
 @router.get("/{corpus_id}", response_model=schemas.CorpusOut)

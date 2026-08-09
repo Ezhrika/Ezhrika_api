@@ -15,10 +15,17 @@ from app.db.session import get_db
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
 
-@router.get("", response_model=list[schemas.TeacherOut])
-def list_teachers(db: Session = Depends(get_db)):
-    return db.query(models.Teacher).all()
 
+@router.get("", response_model=list[schemas.TeacherOut])
+def list_teachers(name: str | None = None, faculty: int | None = None, user_id: int | None = None, db: Session = Depends(get_db)):
+    q = db.query(models.Teacher)
+    if name:
+        q = q.filter(models.Teacher.name.ilike(f"%{name}%"))
+    if faculty is not None:
+        q = q.filter(models.Teacher.faculty == faculty)
+    if user_id is not None:
+        q = q.filter(models.Teacher.user_id == user_id)
+    return q.all()
 
 @router.get("/{teacher_id}", response_model=schemas.TeacherOut)
 def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
