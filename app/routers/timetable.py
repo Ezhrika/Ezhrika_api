@@ -53,6 +53,7 @@ def list_timetable(
     teacher: int | None = None,
     classroom: int | None = None,
     subject: int | None = None,
+    group: int | None = None,
     db: Session = Depends(get_db),
 ):
     """Расписание с фильтрами: ?day=2026-09-01&teacher=1 и т.д."""
@@ -65,6 +66,8 @@ def list_timetable(
         q = q.filter(models.Timetable.classroom == classroom)
     if subject is not None:
         q = q.filter(models.Timetable.subject == subject)
+    if group is not None:  # <- новое
+        q = q.join(models.Timetable.groups).filter(models.StudentGroup.id == group)
     return q.order_by(models.Timetable.day, models.Timetable.slot).all()
 
 

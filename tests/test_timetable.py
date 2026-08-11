@@ -156,3 +156,21 @@ def test_delete(client, refs):
     tid = _create(client, "/timetable", _payload(refs))
     assert client.delete(f"/timetable/{tid}").status_code == 204
     assert client.get(f"/timetable/{tid}").status_code == 404
+
+def test_groups_survive_roundtrip(client, refs):
+    """Группы должны читаться из БД, а не только эхом в ответе POST."""
+    tid = _create(client, "/timetable", _payload(refs))
+    resp = client.get(f"/timetable/{tid}")
+    assert resp.status_code == 200
+    assert resp.json()["groups"] == [refs["group"]]
+
+def test_filter_by_group(client, refs):
+    group2 = _create(client, "/student_group", {"name": "ИВТ-22"})
+    _create(client, "/timetable", _payload(refs))                            # с группой ИВТ-21
+    _create(client, "/timetable", _payload(refs, slot=refs["slot2"], groups=[group2]))
+
+    resp = client.get("/timetable", params={"group": refs["group"]})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 1
+    assert rows[0]["groups"] == [refs["group"]]

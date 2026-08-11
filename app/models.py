@@ -17,6 +17,8 @@ from sqlalchemy import (
     Time,
     UniqueConstraint,
     func,
+    Table,
+Column
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -154,6 +156,15 @@ class Slot(Base):
     start_time: Mapped[datetime.time] = mapped_column(Time, nullable=False)
     end_time: Mapped[datetime.time] = mapped_column(Time, nullable=False)
 
+class TimetableGroup(Base):
+    __tablename__ = "timetable_groups"
+
+    timetable_id: Mapped[int] = mapped_column(
+        ForeignKey("timetable.id", ondelete="CASCADE"), primary_key=True
+    )
+    group_id: Mapped[int] = mapped_column(
+        ForeignKey("student_group.id"), primary_key=True
+    )
 
 class Timetable(Base):
     __tablename__ = "timetable"
@@ -174,7 +185,7 @@ class Timetable(Base):
 
     consult: Mapped["Consult"] = relationship(back_populates="timetable_row", uselist=False)
 
-
+    groups = relationship("StudentGroup", secondary="timetable_groups")
 # ── Консультации ───────────────────────────────────────────────────────────
 class Consult(Base):
     __tablename__ = "consult"
@@ -184,7 +195,7 @@ class Consult(Base):
     # или kind=practice, если консультация идёт поверх своей пары).
     # Время, кабинет и преподаватель берутся оттуда.
     timetable: Mapped[int] = mapped_column(
-        ForeignKey("timetable.id"), unique=True, nullable=False
+        ForeignKey("timetable.id", ondelete="CASCADE"), unique=True, nullable=False
     )
     max_students: Mapped[int] = mapped_column(Integer, nullable=False)
 
@@ -211,12 +222,3 @@ class ConsultRegistration(Base):
     student: Mapped["Student"] = relationship(back_populates="registrations")
 
 
-class TimetableGroup(Base):
-    __tablename__ = "timetable_groups"
-
-    timetable_id: Mapped[int] = mapped_column(
-        ForeignKey("timetable.id"), primary_key=True
-    )
-    group_id: Mapped[int] = mapped_column(
-        ForeignKey("student_group.id"), primary_key=True
-    )
