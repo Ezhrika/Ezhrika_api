@@ -19,7 +19,7 @@ router = APIRouter(prefix="/account", tags=["account"])
 def list_account(login: str | None = None,db: Session = Depends(get_db)):
     q = db.query(models.Account)
     if login:
-        q = q.filter(models.Account.name.ilike(f"%{login}%"))
+        q = q.filter(models.Account.login.ilike(f"%{login}%"))
     return q.all()
 
 
