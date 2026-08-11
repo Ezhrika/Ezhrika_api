@@ -1,14 +1,7 @@
-"""Pydantic-схемы — форма данных на входе и выходе API (то, что в JSON).
 
-Это НЕ то же, что модели. Модели (models.py) описывают таблицы в БД.
-Схемы описывают, что приходит от клиента и что уходит клиенту.
-
-Разделение на *Create (вход) и *Out (выход) — не формальность:
-именно оно не даёт лишним полям (например password_hash) утечь наружу,
-потому что в *Out таких полей просто нет.
-"""
-from pydantic import BaseModel, ConfigDict, Field
-from app.models import UserRole, BoardType, ScreenType
+from datetime import date,time
+from pydantic import BaseModel, ConfigDict, Field, field_validator,model_validator
+from app.models import UserRole, BoardType, ScreenType,TimetableKind
 
 # ── Teacher ────────────────────────────────────────────────────────────────
 class TeacherBase(BaseModel):
@@ -154,3 +147,48 @@ class ClassroomOut(ClassroomBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
+class SlotBase(BaseModel):
+    number: int = Field(gt=0)
+    start_time: time
+    end_time: time
+
+    @model_validator(mode="after")
+    def end_after_start(self):
+        if self.end_time <= self.start_time:
+            raise ValueError("end_time должен быть позже start_time")
+        return self
+
+
+class SlotCreate(SlotBase):
+    pass
+
+
+class SlotOut(SlotBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class TimetableBase(BaseModel):
+    day: date
+    slot: int
+    classroom: int
+    teacher: int
+    subject: int
+    kind: TimetableKind
+    groups: list[int] = []
+
+
+class TimetableCreate(TimetableBase):
+    pass
+
+
+class TimetableOut(TimetableBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("groups", mode="before")
+    @classmethod
+    def groups_to_ids(cls, v):
+        """Из модели приходят объекты StudentGroup — отдаём клиенту их id."""
+        return [g.id if hasattr(g, "id") else g for g in v]
