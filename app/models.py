@@ -191,6 +191,7 @@ class Consult(Base):
     __tablename__ = "consult"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=True)
     # Ссылка на строку расписания (kind=consultation для свободного кабинета
     # или kind=practice, если консультация идёт поверх своей пары).
     # Время, кабинет и преподаватель берутся оттуда.

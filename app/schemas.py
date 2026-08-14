@@ -192,3 +192,16 @@ class TimetableOut(TimetableBase):
     def groups_to_ids(cls, v):
         """Из модели приходят объекты StudentGroup — отдаём клиенту их id."""
         return [g.id if hasattr(g, "id") else g for g in v]
+class ConsultBase(BaseModel):
+    """Общие поля, типа консультаций"""
+    name: str | None = None
+    timetable: int
+    max_students: int = Field(gt=0)
+
+class ConsultCreate(ConsultBase):
+    """заготовка под будущее"""
+    pass
+class ConsultOut(ConsultBase):
+    """Что API отдаёт клиенту."""
+    id: int
+    model_config = ConfigDict(from_attributes=True)
