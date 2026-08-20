@@ -54,3 +54,7 @@ def client(db_session):
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+def _create(client, url, json):
+    resp = client.post(url, json=json)
+    assert resp.status_code == 201, f"POST {url} -> {resp.status_code}: {resp.text}"
+    return resp.json()["id"]
