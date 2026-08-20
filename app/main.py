@@ -10,7 +10,7 @@ from fastapi import FastAPI
 
 from app.routers import (teachers, students, account,faculty,
                          student_group,classroom_type,corpus,subject,
-                         classroom,timetable,slot,consult)
+                         classroom,timetable,slot,consult, consult_registration)
 
 
 app = FastAPI(title="SmartConsult API")
@@ -28,6 +28,7 @@ app.include_router(classroom.router)
 app.include_router(timetable.router)
 app.include_router(slot.router)
 app.include_router(consult.router)
+app.include_router(consult_registration.router)
 
 
 from app.db.base import Base

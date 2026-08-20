@@ -1,5 +1,5 @@
 
-from datetime import date,time
+from datetime import date,time,datetime
 from pydantic import BaseModel, ConfigDict, Field, field_validator,model_validator
 from app.models import UserRole, BoardType, ScreenType,TimetableKind
 
@@ -204,4 +204,17 @@ class ConsultCreate(ConsultBase):
 class ConsultOut(ConsultBase):
     """Что API отдаёт клиенту."""
     id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class ConsultRegBase(BaseModel):
+    """Общие поля, типа консультаций"""
+    consult_id: int
+    student_id: int
+
+class ConsultRegOut(BaseModel):
+    """Что API отдаёт: запись целиком, с временем от БД."""
+    consult_id: int
+    student_id: int
+    registration_time: datetime
+
     model_config = ConfigDict(from_attributes=True)
