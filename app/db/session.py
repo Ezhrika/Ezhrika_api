@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 
 
+# Подключение к PostgreSQL и управление сессиями работы с БД.
 @lru_cache(maxsize=1)
 def get_engine() -> Engine:
     if settings.database_url is None:

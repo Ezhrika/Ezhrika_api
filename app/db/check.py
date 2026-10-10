@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.db.session import get_engine
 
 
+# Проверка подключения к PostgreSQL: python -m app.db.check
 def main() -> int:
     try:
         engine = get_engine()
@@ -18,7 +19,6 @@ def main() -> int:
             print("The database returned an unexpected result.")
             return 1
     except SQLAlchemyError:
-        # Текст исключения может содержать сведения о подключении.
         print("Connection failed. Check that PostgreSQL is running and verify the port, database name, username and password in .env.")
         return 1
     finally:

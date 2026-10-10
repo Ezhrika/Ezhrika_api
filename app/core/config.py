@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import SecretStr
 
 
+# Настройки приложения из .env и переменных окружения.
 class Settings(BaseSettings):
     app_name: str = "Tutor Booking API"
     debug: bool = False
