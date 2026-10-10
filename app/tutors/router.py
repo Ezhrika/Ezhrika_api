@@ -1,6 +1,3 @@
-# Маршруты API для профилей репетиторов.
-# TODO: Добавить чтение одного профиля, создание и изменение собственного профиля.
-
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -15,6 +12,8 @@ from app.tutors.schemas import TutorProfileRead
 router = APIRouter(prefix="/api/v1/tutors", tags=["tutors"])
 
 
+# Получение всех профилей репетиторов из БД.
+# TODO: Добавить чтение одного профиля, создание и изменение собственного профиля.
 @router.get("", response_model=list[TutorProfileRead], summary="Get all tutor profiles")
 def get_all_tutors(db: Annotated[Session, Depends(get_db)]) -> list[TutorProfile]:
     return list(db.scalars(select(TutorProfile).order_by(TutorProfile.id)).all())
