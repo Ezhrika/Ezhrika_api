@@ -15,10 +15,12 @@ app/
 │   └── session.py      
 ├── notifications/     # todo: Email-уведомления
 ├── slots/             # todo: Свободное время 
-├── tutors/            # todo: Профили репетиторов
+├── tutors/            # Профили репетиторов
+│   ├── models.py      # Модель TutorProfile для БД
+│   ├── router.py      
+│   └── schemas.py     # Формат ответа API
 └── main.py            
 ```
-
 
 
 ## Запуск приложения
@@ -40,3 +42,6 @@ python -m uvicorn app.main:app --reload
 ```powershell
 python -m app.db.check
 ```
+
+Сайт с документацией (port 8000!)
+```http://127.0.0.1:8000/docs#/```
