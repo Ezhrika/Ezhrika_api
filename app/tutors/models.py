@@ -1,4 +1,5 @@
 # Описание таблицы профилей репетиторов.
+# TODO: Добавить связь профиля с аккаунтом и уникальное имя для публичной ссылки.
 
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column
