@@ -5,21 +5,23 @@ Backend на FastAPI для записи учеников к частным ре
 ## Архитектура
 
 ```text
-app/
-├── auth/              # todo: Регистрация и вход
-├── bookings/          # todo: Запись и отмена занятий 
-├── core/              # Настройки
-├── db/
-│   ├── base.py         
-│   ├── check.py        # Проверка подключения
-│   └── session.py      
-├── notifications/     # todo: Email-уведомления
-├── slots/             # todo: Свободное время 
-├── tutors/            # Профили репетиторов
-│   ├── models.py      # Модель TutorProfile для БД
-│   ├── router.py      
-│   └── schemas.py     # Формат ответа API
-└── main.py            
+Ezhrika_api/
+├── app/
+│   ├── auth/              # todo: Регистрация и вход
+│   ├── bookings/          # todo: Запись и отмена занятий
+│   ├── core/              # Настройки
+│   ├── db/
+│   │   ├── base.py
+│   │   ├── check.py        # Проверка подключения
+│   │   └── session.py
+│   ├── notifications/     # todo: Email-уведомления
+│   ├── slots/             # todo: Свободное время
+│   ├── tutors/            # Профили репетиторов
+│   │   ├── models.py      # Модель TutorProfile для БД
+│   │   ├── router.py
+│   │   └── schemas.py     # Формат ответа API
+│   └── main.py
+└── frontend/              # todo: Нужен фронт
 ```
 
 
