@@ -7,23 +7,39 @@ Backend на FastAPI для записи учеников к частным ре
 ```text
 Ezhrika_api/
 ├── app/
-│   ├── auth/              # todo: Регистрация и вход
-│   ├── bookings/          # todo: Запись и отмена занятий
-│   ├── core/              # Настройки
+│   ├── core/                
+│   │   ├── config.py        
+│   │   └── security.py      # todo: Пароли и аутентификация
 │   ├── db/
-│   │   ├── base.py
-│   │   ├── check.py        # Проверка подключения
-│   │   └── session.py
-│   ├── notifications/     # todo: Email-уведомления
-│   ├── slots/             # todo: Свободное время
-│   ├── tutors/            # Профили репетиторов
-│   │   ├── models.py      # Модель TutorProfile для БД
-│   │   ├── router.py
-│   │   └── schemas.py     # Формат ответа API
-│   └── main.py
-└── frontend/              # todo: Нужен фронт
+│   │   ├── base.py          
+│   │   ├── check.py         # Проверка подключения
+│   │   └── session.py       
+│   ├── models/              # Таблицы БД и их поля
+│   │   ├── booking.py       # Записи учеников; todo: Запись и отмена занятий
+│   │   ├── notification.py  # Очередь писем; todo: Email-уведомления
+│   │   ├── slot.py          # Время занятий; todo: Свободное время
+│   │   ├── student.py       # Профили учеников
+│   │   ├── tutor.py         # Модель TutorProfile для БД
+│   │   └── user.py          # Аккаунты пользователей; todo: Регистрация и вход
+│   ├── routers/             # HTTP-маршруты API
+│   │   ├── bookings.py
+│   │   ├── notifications.py
+│   │   ├── slots.py
+│   │   ├── students.py      # Профили учеников
+│   │   ├── tutors.py        # Профили репетиторов
+│   │   └── users.py
+│   ├── schemas/             # Структура и проверка данных API
+│   │   ├── bookings.py
+│   │   ├── notifications.py
+│   │   ├── slots.py
+│   │   ├── students.py
+│   │   ├── tutors.py        
+│   │   └── users.py
+│   └── main.py 
+└── frontend/                # todo: Нужен фронт
 ```
 
+booking - Запись без аккаунта удобнее для разового пробного занятия: открыть ссылку, выбрать время, оставить email. Именно для такого узкого сценария был составлен прежний план
 
 ## Запуск приложения
 
@@ -47,3 +63,4 @@ python -m app.db.check
 
 Сайт с документацией (port 8000!)
 ```http://127.0.0.1:8000/docs#/```
+
