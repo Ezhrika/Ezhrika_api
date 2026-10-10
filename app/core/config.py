@@ -1,15 +1,17 @@
+"""Настройки из .env и переменных окружения."""
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
-    # Строка подключения к PostgreSQL.
-    # Пример: postgresql://postgres:1234@localhost:5432/smartconsult
-    database_url: str
-    # Секрет для подписи токенов авторизации (понадобится позже).
-    # Пока задан дефолт для запуска, но в .env его нужно переопределить.
-    secret_key: str = "change-me-in-env"
-    model_config = SettingsConfigDict(env_file=".env")
+    app_name: str = "Tutor Booking API"
+    debug: bool = False
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
-# Единственный экземпляр настроек, который импортируют остальные модули.
 settings = Settings()

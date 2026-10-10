@@ -1,42 +1,13 @@
-"""Точка входа приложения.
+"""Точка входа: запуск через uvicorn app.main:app --reload."""
 
-Здесь только создаётся FastAPI и подключаются роутеры. Никакой логики —
-она живёт в routers/
-
-Запуск:  uvicorn app.main:app --reload
-Docs:    http://localhost:8000/docs
-"""
 from fastapi import FastAPI
 
-from app.routers import (teachers, students, account,faculty,
-                         student_group,classroom_type,corpus,subject,
-                         classroom,timetable,slot,consult, consult_registration)
+from app.core.config import settings
 
 
-app = FastAPI(title="SmartConsult API")
-
-# Каждый новый роутер (students, consults, classrooms, auth) добавляется строкой.
-app.include_router(teachers.router)
-app.include_router(students.router)
-app.include_router(account.router)
-app.include_router(faculty.router)
-app.include_router(student_group.router)
-app.include_router(classroom_type.router)
-app.include_router(corpus.router)
-app.include_router(subject.router)
-app.include_router(classroom.router)
-app.include_router(timetable.router)
-app.include_router(slot.router)
-app.include_router(consult.router)
-app.include_router(consult_registration.router)
+app = FastAPI(title=settings.app_name, debug=settings.debug)
 
 
-from app.db.base import Base
-from app.db.session import engine
-from app import models  # важно: импорт, чтобы модели зарегистрировались
-
-Base.metadata.create_all(engine)
-
-@app.get("/")
-def root():
-    return {"service": "SmartConsult API", "docs": "/docs"}
+@app.get("/", tags=["service"])
+def health() -> dict[str, str]:
+    return {"status": "ok"}
