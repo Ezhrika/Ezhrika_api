@@ -2,20 +2,23 @@
 
 Backend на FastAPI для записи учеников к частным репетиторам.
 
-Из корня проекта в PowerShell установите зависимости (один раз):
+
+## Запуск приложения
+
+Установка зависимостей из pyproject.toml:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -e .
+python -m pip install -e .
 ```
 
 Запуск сервера:
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
-- Документация API: http://127.0.0.1:8000/docs
-- Остановка: `Ctrl+C`.
+Проверка подключения к PostgreSQL (после настройки `DATABASE_URL` в локальном `.env`):
 
-Сейчас `.env` и PostgreSQL для запуска не нужны. Пример настроек — в `.env.example`.
-
+```powershell
+python -m app.db.check
+```

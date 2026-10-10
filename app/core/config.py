@@ -1,11 +1,11 @@
-"""Настройки из .env и переменных окружения."""
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
     app_name: str = "Tutor Booking API"
     debug: bool = False
+    database_url: SecretStr | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

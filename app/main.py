@@ -1,5 +1,3 @@
-"""Точка входа: запуск через uvicorn app.main:app --reload."""
-
 from fastapi import FastAPI
 
 from app.core.config import settings
