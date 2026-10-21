@@ -1,9 +1,13 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.slot import Slot
 
 
 # Записи зарегистрированных учеников и гостей на занятия.
@@ -12,6 +16,7 @@ class Booking(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     slot_id: Mapped[int] = mapped_column(ForeignKey("slots.id"))
+    slot: Mapped["Slot"] = relationship()
     student_id: Mapped[int | None] = mapped_column(ForeignKey("student_profiles.id")) # Для гостевой записи профиль ученика отсутствует.
     student_name: Mapped[str] = mapped_column(String(100))
     student_email: Mapped[str] = mapped_column(String(254))

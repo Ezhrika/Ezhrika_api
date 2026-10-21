@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +12,7 @@ from app.models.tutor import TutorProfile
 from app.models.user import User
 from app.schemas.slots import SlotRead
 from app.schemas.tutors import TutorProfileRead, TutorProfileUpdate
+from app.services.bookings import expire_pending_bookings
 
 
 router = APIRouter(prefix="/api/v1/tutors", tags=["tutors"])
@@ -107,10 +109,16 @@ def get_tutor_open_slots(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tutor not found.",
         )
+    expire_pending_bookings(db, tutor_id)
+    db.commit()
     return list(
         db.scalars(
             select(Slot)
-            .where(Slot.tutor_id == tutor_id, Slot.status == "open")
+            .where(
+                Slot.tutor_id == tutor_id,
+                Slot.status == "open",
+                Slot.starts_at > datetime.now(timezone.utc),
+            )
             .order_by(Slot.starts_at)
         ).all()
     )

@@ -6,9 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.db.session import get_db
-from app.models.booking import Booking  # noqa: F401
+from app.db.session import get_engine
+from app.models.booking import Booking
 from app.models.notification import Notification
+from app.services.bookings import expire_pending_bookings
 
 
 import sys
@@ -48,6 +49,22 @@ def send_raw_email(recipient: str, subject: str, body: str) -> bool:
 
 # Обработка одного уведомления с обновлением статуса и счётчика попыток.
 def process_notification(db: Session, notification: Notification) -> bool:
+    notification = db.scalar(
+        select(Notification).where(Notification.id == notification.id)
+        .with_for_update(skip_locked=True)
+        .execution_options(populate_existing=True)
+    )
+    if notification is None or notification.status != "pending":
+        return False
+    booking = db.get(Booking, notification.booking_id)
+    if booking is not None and booking.status == "expired":
+        notification.status = "cancelled"
+        db.commit()
+        return False
+    if notification.attempts >= settings.max_notification_attempts:
+        notification.status = "failed"
+        db.commit()
+        return False
     success = send_raw_email(
         recipient=notification.recipient_email,
         subject=notification.subject,
@@ -67,6 +84,8 @@ def process_notification(db: Session, notification: Notification) -> bool:
 
 # Пакетная обработка всех ожидающих отправки уведомлений из очереди.
 def process_pending_notifications(db: Session, limit: int = 50) -> int:
+    expire_pending_bookings(db)
+    db.commit()
     notifications: Sequence[Notification] = db.scalars(
         select(Notification)
         .where(
@@ -87,10 +106,7 @@ def process_pending_notifications(db: Session, limit: int = 50) -> int:
 
 # Фоновая задача отправки уведомления по идентификатору для FastAPI BackgroundTasks.
 def send_notification_background(notification_id: int) -> None:
-    db = next(get_db())
-    try:
+    with Session(get_engine()) as db:
         notification = db.get(Notification, notification_id)
         if notification and notification.status == "pending":
             process_notification(db, notification)
-    finally:
-        db.close()

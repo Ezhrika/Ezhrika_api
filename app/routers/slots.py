@@ -5,11 +5,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
+from app.core.debug import require_debug
 from app.db.session import get_db
 from app.models.slot import Slot
+from app.models.booking import Booking
 from app.models.tutor import TutorProfile
 from app.models.user import User
 from app.schemas.slots import SlotCreate, SlotRead
+from app.services.bookings import expire_pending_booking, expire_pending_bookings
 
 
 router = APIRouter(prefix="/api/v1/slots", tags=["slots"])
@@ -34,13 +37,15 @@ def create_slot(
         )
 
     tutor_profile = db.scalar(
-        select(TutorProfile).where(TutorProfile.user_id == current_user.id)
+        select(TutorProfile).where(TutorProfile.user_id == current_user.id).with_for_update()
     )
     if not tutor_profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tutor profile not found.",
         )
+
+    expire_pending_bookings(db, tutor_profile.id)
 
     # Проверка наложения времени: интервалы пересекаются, если start < existing_end и end > existing_start
     overlap = db.scalar(
@@ -94,6 +99,8 @@ def get_my_slots(
             detail="Tutor profile not found.",
         )
 
+    expire_pending_bookings(db, tutor_profile.id)
+    db.commit()
     return list(
         db.scalars(
             select(Slot)
@@ -108,6 +115,7 @@ def get_my_slots(
     "",
     response_model=list[SlotRead],
     summary="Get slots list with optional filters",
+    dependencies=[Depends(require_debug)],
 )
 def get_slots(
     db: Annotated[Session, Depends(get_db)],
@@ -148,7 +156,7 @@ def delete_slot(
             detail="Tutor profile not found.",
         )
 
-    slot = db.get(Slot, slot_id)
+    slot = db.scalar(select(Slot).where(Slot.id == slot_id).with_for_update())
     if not slot:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -161,12 +169,17 @@ def delete_slot(
             detail="You can only delete your own slots.",
         )
 
-    if slot.status == "booked":
+    expire_pending_booking(db, slot)
+    if slot.status in {"booked", "pending"}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete a booked slot. Please cancel the booking instead.",
         )
 
-    db.delete(slot)
+    has_history = db.scalar(select(Booking.id).where(Booking.slot_id == slot.id).limit(1))
+    if has_history is not None:
+        slot.status = "cancelled"
+    else:
+        db.delete(slot)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

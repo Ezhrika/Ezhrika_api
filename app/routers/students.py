@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
+from app.core.debug import require_debug
 from app.db.session import get_db
 from app.models.student import StudentProfile
 from app.models.user import User
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/api/v1/students", tags=["students"])
 
 
 # Получение всех профилей учеников из БД (для локальной отладки).
-@router.get("", response_model=list[StudentProfileRead], summary="Get all student profiles (debug)")
+@router.get("", response_model=list[StudentProfileRead], summary="Get all student profiles (debug)", dependencies=[Depends(require_debug)])
 def get_all_students(db: Annotated[Session, Depends(get_db)]) -> list[StudentProfile]:
     return list(db.scalars(select(StudentProfile).order_by(StudentProfile.id)).all())
 

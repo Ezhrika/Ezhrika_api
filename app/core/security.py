@@ -3,7 +3,7 @@ from typing import Annotated
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -23,9 +23,13 @@ def hash_password(password: str) -> str:
 
 # Проверка соответствия открытого пароля сохранённому хешу.
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-    )
+    password_bytes = plain_password.encode("utf-8")
+    if len(password_bytes) > 72:
+        return False
+    try:
+        return bcrypt.checkpw(password_bytes, hashed_password.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 # Создание JWT-токена доступа с указанием срока действия.
@@ -39,7 +43,7 @@ def create_access_token(
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.access_token_expire_minutes
         )
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "purpose": "access"})
     return jwt.encode(
         to_encode,
         settings.secret_key.get_secret_value(),
@@ -65,10 +69,10 @@ def get_current_user(
             algorithms=[settings.jwt_algorithm],
         )
         user_id_str: str | None = payload.get("sub")
-        if user_id_str is None:
+        if user_id_str is None or payload.get("purpose", "access") != "access":
             raise credentials_exception
         user_id = int(user_id_str)
-    except (jwt.PyJWTError, ValueError):
+    except (jwt.PyJWTError, ValueError, TypeError):
         raise credentials_exception
 
     user = db.get(User, user_id)
@@ -81,19 +85,14 @@ def get_current_user(
 def get_optional_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(optional_security)],
     db: Annotated[Session, Depends(get_db)],
+    request: Request,
 ) -> User | None:
     if not credentials:
+        if request.headers.get("Authorization"):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         return None
-    try:
-        payload = jwt.decode(
-            credentials.credentials,
-            settings.secret_key.get_secret_value(),
-            algorithms=[settings.jwt_algorithm],
-        )
-        user_id_str: str | None = payload.get("sub")
-        if user_id_str is None:
-            return None
-        user_id = int(user_id_str)
-        return db.get(User, user_id)
-    except (jwt.PyJWTError, ValueError):
-        return None
+    return get_current_user(credentials, db)
