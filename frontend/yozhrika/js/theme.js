@@ -7,7 +7,8 @@
 
     function update() {
         const dark = root.dataset.theme !== 'light';
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#211d1c' : '#f3ede2');
+        const background = getComputedStyle(root).getPropertyValue('--bg').trim();
+        if (background) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background);
         document.querySelectorAll('[data-theme-toggle]').forEach(button => {
             button.setAttribute('aria-label', dark ? 'Включить светлую тему' : 'Включить тёмную тему');
             const label = button.querySelector('[data-theme-label]');

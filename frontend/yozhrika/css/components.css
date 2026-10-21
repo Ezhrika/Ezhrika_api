@@ -23,7 +23,7 @@ input, select, textarea {
     border-radius: 9px; background: var(--bg); color: var(--ink); font: inherit;
 }
 textarea { min-height: 120px; resize: vertical; }
-input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: var(--placeholder-opacity); }
 input[readonly] { color: var(--muted); }
 input[type="checkbox"], input[type="radio"] { width: auto; min-height: auto; accent-color: var(--accent-text); }
 .hint { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 0; }

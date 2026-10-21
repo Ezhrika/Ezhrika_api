@@ -83,21 +83,23 @@ try {
     }
     let viewportWidth;
     async function viewport(width, height = 900) { viewportWidth = width; await page('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 }); }
-    async function shot(name) {
-        await evaluate("window.scrollTo({ top: 0, left: 0, behavior: 'instant' })");
+    async function shot(name, { scrollTop = 0, viewportOnly = false } = {}) {
+        await evaluate(`window.scrollTo({ top: ${Number(scrollTop)}, left: 0, behavior: 'instant' })`);
         await delay(120);
         const fits = await evaluate(`Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) <= ${viewportWidth}`);
         if (!fits) console.log('Overflow elements:', await evaluate(`[...document.querySelectorAll('body *')].filter(element => { const rect = element.getBoundingClientRect(); return rect.width > 0 && (rect.right > ${viewportWidth} + 1 || rect.left < -1); }).slice(0, 15).map(element => ({ tag: element.tagName, class: element.className, text: element.innerText?.slice(0, 70), width: element.getBoundingClientRect().width }))`));
         assert.equal(fits, true, `Horizontal overflow: ${name}`);
         const metrics = await page('Page.getLayoutMetrics');
-        const screenshot = await page('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: metrics.cssContentSize.width, height: metrics.cssContentSize.height, scale: 1 } });
+        const screenshot = await page('Page.captureScreenshot', { format: 'png', ...(viewportOnly ? { captureBeyondViewport: false } : { captureBeyondViewport: true, clip: { x: 0, y: 0, width: metrics.cssContentSize.width, height: metrics.cssContentSize.height, scale: 1 } }) });
         await writeFile(join(artifacts, name + '.png'), Buffer.from(screenshot.data, 'base64'));
     }
     await viewport(1440);
     await go('/'); await waitFor("!!document.querySelector('[data-theme-toggle]')");
     assert.equal(await evaluate("document.querySelector('.header-account a:last-child').textContent"), 'Регистрация');
     await shot('home-dark'); await click('[data-theme-toggle]'); await shot('home-light');
+    await shot('home-paper-header', { scrollTop: await evaluate("document.querySelector('.demo-day.selected').getBoundingClientRect().top + window.scrollY - 28"), viewportOnly: true });
     await viewport(390, 844); await shot('home-mobile');
+    await shot('home-paper-header-mobile', { scrollTop: await evaluate("document.querySelector('.demo-day.selected').getBoundingClientRect().top + window.scrollY - 28"), viewportOnly: true });
     await viewport(320, 844); await shot('home-small');
     await viewport(1440); await click('[data-theme-toggle]');
 
