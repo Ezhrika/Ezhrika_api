@@ -3,7 +3,7 @@ import hashlib
 import secrets
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -21,6 +21,7 @@ from app.schemas.bookings import (
     BookingRead,
     CancelByTokenRequest,
 )
+from app.services.email import send_notification_background
 
 
 router = APIRouter(prefix="/api/v1/bookings", tags=["bookings"])
@@ -35,6 +36,7 @@ router = APIRouter(prefix="/api/v1/bookings", tags=["bookings"])
 )
 def create_booking(
     payload: BookingCreate,
+    background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User | None, Depends(get_optional_current_user)],
 ) -> BookingGuestResponse:
@@ -119,9 +121,13 @@ def create_booking(
         status="pending",
     )
     db.add(notification)
+    db.flush()
 
     db.commit()
     db.refresh(booking)
+
+    # 5. Фоновая отправка письма через FastAPI BackgroundTasks
+    background_tasks.add_task(send_notification_background, notification.id)
 
     return BookingGuestResponse(
         id=booking.id,
@@ -209,6 +215,7 @@ def get_tutor_bookings(
 )
 def cancel_booking_by_student(
     booking_id: int,
+    background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Booking:
@@ -248,17 +255,19 @@ def cancel_booking_by_student(
     if slot and slot.starts_at > datetime.now(timezone.utc):
         slot.status = "open"
 
-    db.add(
-        Notification(
-            booking_id=booking.id,
-            recipient_email=booking.student_email,
-            subject="Отмена записи на занятие",
-            body="Ваша запись на занятие успешно отменена.",
-            status="pending",
-        )
+    notification = Notification(
+        booking_id=booking.id,
+        recipient_email=booking.student_email,
+        subject="Отмена записи на занятие",
+        body="Ваша запись на занятие успешно отменена.",
+        status="pending",
     )
+    db.add(notification)
+    db.flush()
     db.commit()
     db.refresh(booking)
+
+    background_tasks.add_task(send_notification_background, notification.id)
     return booking
 
 
@@ -270,6 +279,7 @@ def cancel_booking_by_student(
 )
 def cancel_booking_by_tutor(
     booking_id: int,
+    background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Booking:
@@ -308,17 +318,19 @@ def cancel_booking_by_tutor(
     booking.status = "cancelled"
     slot.status = "cancelled"
 
-    db.add(
-        Notification(
-            booking_id=booking.id,
-            recipient_email=booking.student_email,
-            subject="Занятие отменено преподавателем",
-            body="Преподаватель отменил занятие.",
-            status="pending",
-        )
+    notification = Notification(
+        booking_id=booking.id,
+        recipient_email=booking.student_email,
+        subject="Занятие отменено преподавателем",
+        body="Преподаватель отменил занятие.",
+        status="pending",
     )
+    db.add(notification)
+    db.flush()
     db.commit()
     db.refresh(booking)
+
+    background_tasks.add_task(send_notification_background, notification.id)
     return booking
 
 
@@ -330,6 +342,7 @@ def cancel_booking_by_tutor(
 )
 def cancel_booking_by_token(
     payload: CancelByTokenRequest,
+    background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
 ) -> Booking:
     token_hash = hashlib.sha256(payload.token.strip().encode("utf-8")).hexdigest()
@@ -352,17 +365,19 @@ def cancel_booking_by_token(
     if slot and slot.starts_at > datetime.now(timezone.utc):
         slot.status = "open"
 
-    db.add(
-        Notification(
-            booking_id=booking.id,
-            recipient_email=booking.student_email,
-            subject="Отмена записи на занятие",
-            body="Ваша запись на занятие успешно отменена по ссылке.",
-            status="pending",
-        )
+    notification = Notification(
+        booking_id=booking.id,
+        recipient_email=booking.student_email,
+        subject="Отмена записи на занятие",
+        body="Ваша запись на занятие успешно отменена по ссылке.",
+        status="pending",
     )
+    db.add(notification)
+    db.flush()
     db.commit()
     db.refresh(booking)
+
+    background_tasks.add_task(send_notification_background, notification.id)
     return booking
 
 

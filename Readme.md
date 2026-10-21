@@ -17,7 +17,7 @@ Ezhrika_api/
 │   │   └── session.py       
 │   ├── models/              # Таблицы БД и их поля
 │   │   ├── booking.py       # Записи учеников и гостей
-│   │   ├── notification.py  # Очередь писем; todo: Email-уведомления
+│   │   ├── notification.py  # Очередь писем
 │   │   ├── slot.py          # Время занятий
 │   │   ├── student.py       # Профили учеников
 │   │   ├── tutor.py         # Модель TutorProfile для БД
@@ -37,6 +37,9 @@ Ezhrika_api/
 │   │   ├── students.py
 │   │   ├── tutors.py        
 │   │   └── users.py
+│   ├── services/            # Сервисы приложения
+│   │   ├── email.py         # Отправка писем
+│   │   └── email_worker.py  # Обработка очереди писем
 │   └── main.py 
 └── frontend/                # todo: Нужен фронт
 ```
@@ -87,6 +90,12 @@ python -m app.db.check
 
 ```powershell
 python -m app.db.init_db
+```
+
+Отправка писем из очереди уведомлений:
+
+```powershell
+python -m app.services.email_worker
 ```
 
 Сайт с документацией (port 8000!)

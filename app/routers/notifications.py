@@ -7,15 +7,20 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.notification import Notification
 from app.schemas.notifications import NotificationRead
+from app.services.email import process_pending_notifications
 
 
 router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
 
 
-# Получение всех уведомлений из БД.
+# Получение всех уведомлений из БД (для локальной отладки).
 @router.get("", response_model=list[NotificationRead], summary="Get all notifications")
 def get_all_notifications(db: Annotated[Session, Depends(get_db)]) -> list[Notification]:
     return list(db.scalars(select(Notification).order_by(Notification.id)).all())
 
 
-# TODO: Реализовать обработчик очереди и повторные попытки отправки; ограничить доступ к списку.
+# Запуск обработки очереди ожидающих отправки писем.
+@router.post("/process", summary="Process pending email notifications")
+def process_queue(db: Annotated[Session, Depends(get_db)]) -> dict[str, int]:
+    count = process_pending_notifications(db)
+    return {"processed": count}
