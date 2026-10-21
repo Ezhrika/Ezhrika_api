@@ -9,7 +9,7 @@ Ezhrika_api/
 ├── app/
 │   ├── core/                
 │   │   ├── config.py        
-│   │   └── security.py      # todo: Пароли и аутентификация
+│   │   └── security.py      # Пароли и JWT-аутентификация
 │   ├── db/
 │   │   ├── base.py          
 │   │   ├── check.py         # Проверка подключения
@@ -21,8 +21,9 @@ Ezhrika_api/
 │   │   ├── slot.py          # Время занятий; todo: Свободное время
 │   │   ├── student.py       # Профили учеников
 │   │   ├── tutor.py         # Модель TutorProfile для БД
-│   │   └── user.py          # Аккаунты пользователей; todo: Регистрация и вход
+│   │   └── user.py          # Аккаунты пользователей
 │   ├── routers/             # HTTP-маршруты API
+│   │   ├── auth.py          # Регистрация и вход (JWT)
 │   │   ├── bookings.py
 │   │   ├── notifications.py
 │   │   ├── slots.py

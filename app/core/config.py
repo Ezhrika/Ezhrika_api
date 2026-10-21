@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     app_name: str = "Tutor Booking API"
     debug: bool = False
     database_url: SecretStr | None = None
+    secret_key: SecretStr = SecretStr("dev-secret-key-change-in-production")
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 1440
 
     model_config = SettingsConfigDict(
         env_file=".env",

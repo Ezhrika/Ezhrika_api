@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # Структура и проверка данных профиля ученика в ответах API.
@@ -10,4 +10,6 @@ class StudentProfileRead(BaseModel):
     name: str
 
 
-# TODO: Добавить схемы создания и изменения профиля с проверкой имени.
+# Данные для изменения собственного профиля ученика.
+class StudentProfileUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
