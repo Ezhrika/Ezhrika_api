@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
 from app.db.session import get_db
+from app.models.slot import Slot
 from app.models.tutor import TutorProfile
 from app.models.user import User
+from app.schemas.slots import SlotRead
 from app.schemas.tutors import TutorProfileRead, TutorProfileUpdate
 
 
@@ -87,3 +89,28 @@ def get_tutor_by_id(
             detail="Tutor not found.",
         )
     return profile
+
+
+# Публичный список свободных слотов конкретного репетитора для записи.
+@router.get(
+    "/{tutor_id}/slots",
+    response_model=list[SlotRead],
+    summary="Get open slots of a tutor",
+)
+def get_tutor_open_slots(
+    tutor_id: int,
+    db: Annotated[Session, Depends(get_db)],
+) -> list[Slot]:
+    tutor = db.get(TutorProfile, tutor_id)
+    if not tutor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tutor not found.",
+        )
+    return list(
+        db.scalars(
+            select(Slot)
+            .where(Slot.tutor_id == tutor_id, Slot.status == "open")
+            .order_by(Slot.starts_at)
+        ).all()
+    )
