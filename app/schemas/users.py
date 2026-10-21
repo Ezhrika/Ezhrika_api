@@ -3,12 +3,13 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-# Структура и проверка данных аккаунтов репетиторов в ответах API.
+# Структура и проверка данных аккаунтов пользователей в ответах API.
 class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     email: str
+    role: str
     created_at: datetime
 
 

@@ -13,6 +13,7 @@ Ezhrika_api/
 │   ├── db/
 │   │   ├── base.py          
 │   │   ├── check.py         # Проверка подключения
+│   │   ├── init_db.py       # Создание таблиц
 │   │   └── session.py       
 │   ├── models/              # Таблицы БД и их поля
 │   │   ├── booking.py       # Записи учеников; todo: Запись и отмена занятий
@@ -79,6 +80,12 @@ python -m uvicorn app.main:app --reload
 
 ```powershell
 python -m app.db.check
+```
+
+Создание таблиц в PostgreSQL:
+
+```powershell
+python -m app.db.init_db
 ```
 
 Сайт с документацией (port 8000!)
