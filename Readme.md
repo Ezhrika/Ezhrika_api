@@ -16,7 +16,7 @@ Ezhrika_api/
 │   │   ├── init_db.py       # Создание таблиц
 │   │   └── session.py       
 │   ├── models/              # Таблицы БД и их поля
-│   │   ├── booking.py       # Записи учеников; todo: Запись и отмена занятий
+│   │   ├── booking.py       # Записи учеников и гостей
 │   │   ├── notification.py  # Очередь писем; todo: Email-уведомления
 │   │   ├── slot.py          # Время занятий
 │   │   ├── student.py       # Профили учеников

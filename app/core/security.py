@@ -12,6 +12,7 @@ from app.db.session import get_db
 from app.models.user import User
 
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 
 # Хеширование пароля с помощью bcrypt.
@@ -74,3 +75,25 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+# Опциональное извлечение пользователя из JWT-токена (для сценариев с гостями).
+def get_optional_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(optional_security)],
+    db: Annotated[Session, Depends(get_db)],
+) -> User | None:
+    if not credentials:
+        return None
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.secret_key.get_secret_value(),
+            algorithms=[settings.jwt_algorithm],
+        )
+        user_id_str: str | None = payload.get("sub")
+        if user_id_str is None:
+            return None
+        user_id = int(user_id_str)
+        return db.get(User, user_id)
+    except (jwt.PyJWTError, ValueError):
+        return None
