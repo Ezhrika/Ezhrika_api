@@ -51,7 +51,7 @@ def register(
     display_name = payload.name.strip() if payload.name.strip() else normalized_email.split("@")[0]
 
     if user.role == "tutor":
-        display_subject = payload.subject.strip() if payload.subject.strip() else "Предмет не указан"
+        display_subject = payload.subject
         tutor_profile = TutorProfile(
             user_id=user.id,
             name=display_name,

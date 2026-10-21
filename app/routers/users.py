@@ -8,7 +8,9 @@ from app.core.security import get_current_user
 from app.core.debug import require_debug
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.users import UserRead
+from app.models.tutor import TutorProfile
+from app.models.student import StudentProfile
+from app.schemas.users import CurrentUserRead, UserRead
 
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
@@ -21,6 +23,14 @@ def get_all_users(db: Annotated[Session, Depends(get_db)]) -> list[User]:
 
 
 # Получение данных текущего авторизованного пользователя.
-@router.get("/me", response_model=UserRead, summary="Get current user")
-def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-    return current_user
+@router.get("/me", response_model=CurrentUserRead, summary="Get current user")
+def get_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> CurrentUserRead:
+    model = TutorProfile if current_user.role == "tutor" else StudentProfile
+    profile = db.scalar(select(model).where(model.user_id == current_user.id))
+    return CurrentUserRead(
+        **UserRead.model_validate(current_user).model_dump(),
+        name=profile.name if profile else "",
+    )

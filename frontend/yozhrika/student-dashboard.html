@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#211d1c"><meta name="referrer" content="no-referrer">
+    <title>Кабинет ученика — Ёжрика</title>
+    <script src="/assets/js/theme.js"></script>
+    <link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/assets/css/dashboard.css">
+    <link rel="stylesheet" href="/assets/css/workspace.css"><link rel="stylesheet" href="/assets/css/student.css">
+</head>
+<body data-private="student">
+<a class="skip" href="#main">К содержанию</a><header class="header" data-header></header>
+<main id="main" class="wrap dashboard workspace student-workspace">
+    <div id="page-message" class="message" role="alert" hidden></div>
+    <p id="page-loading" class="loading" role="status">Загружаем ваши занятия…</p>
+    <button id="retry-load" class="button secondary" type="button" hidden>Попробовать снова</button>
+    <div id="dashboard-content" class="workspace-layout" hidden>
+        <aside class="workspace-sidebar">
+            <p class="workspace-label">Мои занятия</p>
+            <div class="tabs workspace-nav" role="tablist" aria-orientation="vertical" aria-label="Разделы кабинета">
+                <button id="tab-overview" role="tab" type="button" data-tab="overview" aria-controls="panel-overview" aria-selected="true"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#overview"></use></svg>Обзор</button>
+                <button id="tab-schedule" role="tab" type="button" data-tab="schedule" aria-controls="panel-schedule" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#calendar"></use></svg>Моя неделя</button>
+                <button id="tab-upcoming" role="tab" type="button" data-tab="upcoming" aria-controls="panel-upcoming" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#bookings"></use></svg>Предстоящие</button>
+                <button id="tab-tutors" role="tab" type="button" data-tab="tutors" aria-controls="panel-tutors" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#people"></use></svg>Мои репетиторы</button>
+                <div class="workspace-group" role="group" aria-label="Учебный процесс">
+                    <p class="workspace-label">Учебный процесс</p>
+                    <button id="tab-homework" role="tab" type="button" data-tab="homework" aria-controls="panel-homework" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#homework"></use></svg><span class="nav-text"><span class="nav-title">Домашние задания</span><span class="nav-soon">Скоро</span></span></button>
+                    <button id="tab-materials" role="tab" type="button" data-tab="materials" aria-controls="panel-materials" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#materials"></use></svg><span class="nav-text"><span class="nav-title">Материалы</span><span class="nav-soon">Скоро</span></span></button>
+                </div>
+                <div class="workspace-group" role="group" aria-label="Архив">
+                    <p class="workspace-label">Архив</p>
+                    <button id="tab-history" role="tab" type="button" data-tab="history" aria-controls="panel-history" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#history"></use></svg>История занятий</button>
+                </div>
+                <div class="workspace-settings" role="group" aria-label="Настройки">
+                    <p class="workspace-label">Настройки</p>
+                    <button id="tab-profile" role="tab" type="button" data-tab="profile" aria-controls="panel-profile" aria-selected="false"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#profile"></use></svg>Профиль</button>
+                </div>
+            </div>
+            <a class="workspace-discover" href="/tutors">Найти репетитора ↗</a>
+            <a class="workspace-support" href="/help">Помощь с кабинетом ↗</a>
+        </aside>
+        <div class="workspace-main">
+            <div class="page-heading">
+                <div><div class="eyebrow">Кабинет ученика</div><h1 id="greeting">Ваши занятия</h1><p>Ваше расписание, преподаватели и следующий шаг в учёбе.</p></div>
+                <div class="inline-actions"><a class="button" href="/tutors">Найти репетитора ↗</a><button id="refresh-bookings" class="button quiet" type="button">Обновить записи</button></div>
+            </div>
+            <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+                <div class="overview-heading"><h2>Моё обучение</h2><p id="overview-date" class="hint"></p></div>
+                <section class="stats" aria-label="Сводка занятий">
+                    <div class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#calendar"></use></svg><strong id="stat-upcoming">0</strong><span>Впереди</span><small>Предстоящие записи</small></div>
+                    <div class="stat stat-history"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#bookings"></use></svg><strong id="stat-completed">0</strong><span>Прошло</span><small>По времени записи</small></div>
+                    <div class="stat stat-cancelled"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#history"></use></svg><strong id="stat-cancelled">0</strong><span>Отменено</span><small>Сохранено в истории</small></div>
+                </section>
+                <div id="workspace-overview"></div>
+            </section>
+            <section id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule" hidden>
+                <div class="overview-heading"><h2>Моя неделя</h2><button id="student-today" class="button quiet small" type="button">Сегодня</button></div>
+                <section class="workspace-panel student-schedule-panel">
+                    <div class="student-schedule-toolbar">
+                        <div><h3 id="student-week-label"></h3><p class="hint">Часовой пояс: <span data-timezone></span></p></div>
+                        <div class="student-schedule-controls"><button id="student-prev-week" type="button" class="button quiet small" aria-label="Предыдущая неделя">←</button><label class="visually-hidden" for="student-view-date">Выбрать дату</label><input id="student-view-date" type="date" required><button id="student-next-week" type="button" class="button quiet small" aria-label="Следующая неделя">→</button></div>
+                    </div>
+                    <div id="student-week-days" class="student-week" aria-label="Дни недели"></div>
+                    <p class="hint student-week-caption">Количество записей по дням. Отменённые записи доступны в истории.</p>
+                    <h3 id="student-schedule-date" class="student-schedule-date"></h3>
+                    <div id="student-schedule-list" class="booking-list" aria-live="polite"></div>
+                </section>
+            </section>
+            <section id="panel-upcoming" role="tabpanel" aria-labelledby="tab-upcoming" hidden>
+                <div class="section-heading"><h2>Ближайшие занятия</h2><p class="hint">Время: <span data-timezone></span></p></div>
+                <div id="upcoming-list" class="booking-list" aria-live="polite"></div>
+            </section>
+            <section id="panel-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+                <div class="section-heading"><h2>История записей</h2><p class="hint">Время: <span data-timezone></span></p></div>
+                <p class="hint" style="margin-bottom:18px">«Завершено» означает, что время записи прошло. Посещаемость здесь не отмечается.</p>
+                <div id="history-list" class="booking-list" aria-live="polite"></div>
+            </section>
+            <section id="panel-homework" role="tabpanel" aria-labelledby="tab-homework" hidden>
+                <div class="overview-heading"><h2>Домашние задания</h2><span class="hint">Учебный процесс</span></div>
+                <div class="workspace-panel workspace-coming-soon">
+                    <svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#homework"></use></svg>
+                    <p class="eyebrow">Скоро</p><h3>Продолжить после занятия</h3>
+                    <p class="hint">Здесь будут задания от ваших преподавателей и обратная связь по работам. Получение и отправка заданий пока недоступны.</p>
+                    <ul class="student-coming-details"><li><strong>Что сделать</strong>Условия и сроки задания</li><li><strong>Мой ответ</strong>Работа для преподавателя</li><li><strong>Обратная связь</strong>Комментарии к решению</li></ul>
+                </div>
+            </section>
+            <section id="panel-materials" role="tabpanel" aria-labelledby="tab-materials" hidden>
+                <div class="overview-heading"><h2>Материалы</h2><span class="hint">Учебный процесс</span></div>
+                <div class="workspace-panel workspace-coming-soon">
+                    <svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/yozhrika_files/workspace-icons.svg#materials"></use></svg>
+                    <p class="eyebrow">Скоро</p><h3>Нужное к уроку — под рукой</h3>
+                    <p class="hint">Здесь будут конспекты, файлы и полезные ссылки от ваших преподавателей. Обмен и хранение материалов пока недоступны.</p>
+                    <ul class="student-coming-details"><li><strong>По предметам</strong>Материалы для каждой темы</li><li><strong>От преподавателя</strong>Файлы и ссылки к уроку</li><li><strong>Вернуться к теме</strong>Всё для повторения</li></ul>
+                </div>
+            </section>
+            <section id="panel-tutors" role="tabpanel" aria-labelledby="tab-tutors" hidden>
+                <div data-directory-overview>
+                    <div class="section-heading"><div><h2>Мои репетиторы</h2><p class="hint">Преподаватели из ваших записей. Сначала — с ближайшими занятиями.</p></div><a class="button secondary" href="/tutors">Найти нового репетитора ↗</a></div>
+                    <details class="link-drawer"><summary>Уже есть ссылка преподавателя?</summary><section class="card student-link"><p class="hint">Откройте его страницу и выберите удобное время для занятия.</p><form id="tutor-link-form"><label class="visually-hidden" for="tutor-link">Ссылка на страницу репетитора</label><input id="tutor-link" name="link" type="text" required placeholder="Вставьте ссылку на страницу репетитора"><button class="button secondary" type="submit">Открыть страницу ↗</button></form><div id="link-message" class="message" role="alert" hidden></div></section></details>
+                    <div class="directory-controls"><div class="field"><label for="tutors-search">Найти репетитора</label><input id="tutors-search" type="search" data-directory-search autocomplete="off" placeholder="Имя или предмет" aria-controls="tutors-list"></div><div class="field"><label for="tutors-filter">Показать</label><select id="tutors-filter" data-directory-filter aria-controls="tutors-list"><option value="all">Все репетиторы</option><option value="upcoming">С предстоящими записями</option></select></div></div>
+                    <p class="hint directory-count" data-directory-count role="status" aria-live="polite"></p><div id="tutors-list" class="people-grid" data-directory-list></div>
+                </div>
+                <div class="person-detail" data-directory-detail hidden></div>
+            </section>
+            <section id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
+                <div class="card" style="max-width:620px"><h2>Ваш профиль</h2><p class="hint">Имя будет указано в ваших новых записях на занятия.</p><div id="profile-message" class="message" role="alert" hidden></div><form id="profile-form"><div class="field"><label for="profile-name">Имя и фамилия</label><input id="profile-name" name="name" autocomplete="name" maxlength="100" required></div><div class="field"><label for="profile-email">Email аккаунта</label><input id="profile-email" type="email" readonly></div><button class="button" type="submit">Сохранить профиль</button></form></div>
+            </section>
+        </div>
+    </div>
+</main>
+<footer class="footer" data-footer></footer><noscript><p class="wrap message">Для кабинета включите JavaScript в браузере.</p></noscript>
+<script type="module" src="/assets/js/student-dashboard.js"></script>
+</body></html>

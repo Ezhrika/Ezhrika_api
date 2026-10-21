@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from html import escape
 import hashlib
 import secrets
 from typing import Annotated
@@ -7,7 +6,7 @@ from urllib.parse import urlencode
 
 import jwt
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
@@ -30,6 +29,7 @@ from app.schemas.bookings import (
 )
 from app.services.bookings import expire_pending_booking, expire_pending_bookings, lock_booking
 from app.services.email import send_notification_background
+from app.routers.pages import page_file
 
 
 router = APIRouter(prefix="/api/v1/bookings", tags=["bookings"])
@@ -455,22 +455,10 @@ def confirm_booking_by_token(
     return booking
 
 
-# Временные страницы ссылок из письма: GET показывает кнопку, POST выполняет действие.
-def booking_link_page(title: str, action: str, token: str) -> HTMLResponse:
-    target = escape(f"/api/v1/bookings/{action}?{urlencode({'token': token})}", quote=True)
-    return HTMLResponse(
-        '<!doctype html><html lang="ru"><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        '<meta name="referrer" content="no-referrer">'
-        f'<title>{title}</title><h1>{title}</h1>'
-        f'<form method="post" action="{target}"><button type="submit">{title}</button></form></html>',
-        headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
-    )
-
-
+# Ссылки из ранее отправленных писем также открывают оформленные страницы frontend.
 @router.get("/confirm", response_class=HTMLResponse, include_in_schema=False)
-def confirmation_page(token: Annotated[str, Query(min_length=1, max_length=2048)]) -> HTMLResponse:
-    return booking_link_page("Подтвердить запись", "confirm", token)
+def confirmation_page(token: Annotated[str, Query(min_length=1, max_length=2048)]) -> FileResponse:
+    return page_file("confirm")
 
 
 @router.post("/confirm", response_class=HTMLResponse, include_in_schema=False)
@@ -483,8 +471,8 @@ def confirm_from_email(
 
 
 @router.get("/cancel", response_class=HTMLResponse, include_in_schema=False)
-def cancellation_page(token: Annotated[str, Query(min_length=1, max_length=512)]) -> HTMLResponse:
-    return booking_link_page("Отменить запись", "cancel", token)
+def cancellation_page(token: Annotated[str, Query(min_length=1, max_length=512)]) -> FileResponse:
+    return page_file("cancel")
 
 
 @router.post("/cancel", response_class=HTMLResponse, include_in_schema=False)

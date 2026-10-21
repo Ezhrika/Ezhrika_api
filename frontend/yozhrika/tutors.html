@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#211d1c">
+    <meta name="description" content="Найдите репетитора в Ёжрике по имени или предмету, откройте его профиль и выберите свободное время для занятия.">
+    <title>Найти репетитора — Ёжрика</title><script src="/assets/js/theme.js"></script>
+    <link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/assets/css/dashboard.css"><link rel="stylesheet" href="/assets/css/catalog.css">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a><header class="header" data-header></header>
+<main id="main" class="wrap catalog">
+    <section class="catalog-hero" aria-labelledby="catalog-title"><div><div class="eyebrow"><span class="dot"></span>Преподаватели Ёжрики</div><h1 id="catalog-title">Найти репетитора.<br><em>Начать своё.</em></h1><p>Новая тема, сложная задача или подготовка к экзамену. Найдите преподавателя, с которым вам будет удобно заниматься.</p></div><aside class="catalog-guide"><span>Три шага до занятия</span><ol><li><span>01</span>Выберите предмет</li><li><span>02</span>Познакомьтесь с преподавателем</li><li><span>03</span>Найдите удобное время</li></ol></aside></section>
+    <div id="catalog-message" class="message" role="alert" hidden></div><p id="catalog-loading" class="loading" role="status">Загружаем профили репетиторов…</p><button id="catalog-retry" class="button secondary" type="button" hidden>Попробовать снова</button>
+    <section id="catalog-content" aria-label="Поиск по профилям" hidden>
+        <div class="catalog-layout"><aside class="catalog-filters" aria-label="Фильтры репетиторов"><div class="catalog-filter-heading"><h2>Подобрать преподавателя</h2><span aria-hidden="true">↓</span></div><div class="field"><label for="catalog-subject">Предмет</label><select id="catalog-subject" name="subject" aria-controls="catalog-list"><option value="">Все предметы</option></select></div><button class="catalog-reset" type="button" data-catalog-reset>Сбросить поиск и фильтр</button><div class="catalog-sidebar-note"><span aria-hidden="true">◷</span><h3>Сначала знакомство.<br>Потом — время.</h3><p>В профиле преподавателя можно прочитать о занятиях и посмотреть свободные часы в удобном часовом поясе.</p></div></aside>
+        <div class="catalog-results"><form id="catalog-form" class="catalog-search-form" role="search"><div class="field"><label for="catalog-search">Кого или что хотите найти?</label><input id="catalog-search" name="query" type="search" autocomplete="off" placeholder="Имя, предмет или тема занятий" aria-controls="catalog-list"></div><button class="button" type="submit">Найти ↗</button></form><div id="catalog-subjects" class="catalog-topics" aria-label="Быстрый выбор предмета"></div>
+        <div class="catalog-results-heading"><p id="catalog-count" class="hint" role="status" aria-live="polite"></p><div class="catalog-sort"><label for="catalog-order">Порядок</label><select id="catalog-order" aria-controls="catalog-list"><option value="name">По имени А—Я</option><option value="name-desc">По имени Я—А</option></select></div></div>
+        <div id="catalog-list" class="people-grid"></div></div></div>
+    </section>
+    <noscript><p class="message">Для поиска репетиторов включите JavaScript. Если у вас уже есть ссылка преподавателя, откройте её в браузере.</p></noscript>
+</main><footer class="footer" data-footer></footer>
+<script type="module" src="/assets/js/catalog.js"></script>
+</body></html>

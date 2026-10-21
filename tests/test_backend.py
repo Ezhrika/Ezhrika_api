@@ -110,6 +110,71 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201, response.text)
         return response.json()
 
+    def test_current_user_includes_only_own_profile_name_and_reflects_updates(self):
+        self.assertEqual(self.client.get("/api/v1/users/me").status_code, 401)
+        for auth_key, role, name in [("tutor0", "tutors", "Tutor"), ("student1", "students", "Student")]:
+            headers = self.auth[auth_key]
+            response = self.client.get("/api/v1/users/me", headers=headers)
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json()["name"], name)
+            self.assertNotIn("password_hash", response.json())
+            response = self.client.patch(f"/api/v1/{role}/me", headers=headers, json={"name": "Новое имя"})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(self.client.get("/api/v1/users/me", headers=headers).json()["name"], "Новое имя")
+        self.assertEqual(self.client.get("/api/v1/users/me", headers=self.auth["student2"]).json()["name"], "Other")
+
+    def test_public_tutor_list_works_without_debug_and_contains_no_account_credentials(self):
+        response = self.client.get("/api/v1/tutors")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(len(response.json()), 2)
+        for profile in response.json():
+            self.assertIn("name", profile)
+            self.assertIn("subject", profile)
+            self.assertNotIn("email", profile)
+            self.assertNotIn("password_hash", profile)
+
+    def test_subject_catalog_and_tutor_registration_use_canonical_names(self):
+        subjects = self.client.get("/api/v1/tutors/subjects")
+        self.assertEqual(subjects.status_code, 200)
+        self.assertIn("Математика", subjects.json())
+        self.assertEqual(len(subjects.json()), len(set(subjects.json())))
+        response = self.client.post("/api/v1/auth/register", json={
+            "email": "canonical@example.org", "password": "password123", "role": "tutor", "subject": "  мАТЕматика  ",
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        with Session(self.engine) as db:
+            profile = db.scalar(select(TutorProfile).where(TutorProfile.user_id == response.json()["id"]))
+            self.assertEqual(profile.subject, "Математика")
+        public = self.client.get(f"/api/v1/tutors/{self.tutor_id}").json()
+        self.assertEqual(public["subject"], "Математика", "Legacy Math is normalized without a database rewrite")
+
+    def test_arbitrary_or_missing_tutor_subject_is_rejected_before_creating_an_account(self):
+        for subject in ["", "   ", "Мой новый предмет"]:
+            response = self.client.post("/api/v1/auth/register", json={
+                "email": "invalid-subject@example.org", "password": "password123", "role": "tutor", "subject": subject,
+            })
+            self.assertEqual(response.status_code, 422, response.text)
+        with Session(self.engine) as db:
+            self.assertIsNone(db.scalar(select(User).where(User.email == "invalid-subject@example.org")))
+
+    def test_profile_subject_validation_prevents_partial_updates(self):
+        response = self.client.patch("/api/v1/tutors/me", headers=self.auth["tutor0"], json={"subject": "Мой предмет", "name": "Changed"})
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(self.client.get("/api/v1/tutors/me", headers=self.auth["tutor0"]).json()["name"], "Tutor")
+        response = self.client.patch("/api/v1/tutors/me", headers=self.auth["tutor0"], json={"subject": "physics"})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["subject"], "Физика")
+
+    def test_existing_custom_subject_can_be_preserved_but_not_replaced_with_another_custom_subject(self):
+        with Session(self.engine) as db:
+            db.get(TutorProfile, self.tutor_id).subject = "Авторская дисциплина"
+            db.commit()
+        response = self.client.patch("/api/v1/tutors/me", headers=self.auth["tutor0"], json={"subject": "Авторская дисциплина", "name": "Updated"})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["subject"], "Авторская дисциплина")
+        response = self.client.patch("/api/v1/tutors/me", headers=self.auth["tutor0"], json={"subject": "Ещё одна дисциплина"})
+        self.assertEqual(response.status_code, 422)
+
     def student_booking(self):
         response = self.client.post("/api/v1/bookings", json={"slot_id": 1}, headers=self.auth["student1"])
         self.assertEqual(response.status_code, 201, response.text)
@@ -143,7 +208,7 @@ class BackendTests(unittest.TestCase):
             self.assertEqual(response.status_code, 422)
 
     def test_bcrypt_limit_passwords_register_and_login(self):
-        for i, password in enumerate(["a" * 72, "\u044f" * 36]):
+        for i, password in enumerate(["a" * 72, "Abc123!@#$"]):
             email = f"new{i}@example.org"
             response = self.client.post("/api/v1/auth/register", json={
                 "email": email, "password": password, "role": "student",
@@ -151,6 +216,13 @@ class BackendTests(unittest.TestCase):
             self.assertEqual(response.status_code, 201, response.text)
             self.assertEqual(self.client.post("/api/v1/auth/login", json={"email": email, "password": password}).status_code, 200)
             self.assertEqual(self.client.post("/api/v1/auth/login", json={"email": email, "password": password + "x"}).status_code, 401)
+
+    def test_registration_rejects_non_latin_passwords_and_whitespace(self):
+        for password in ["пароль123", "Abc 12345", "Abc12345\n", "😀" * 8]:
+            response = self.client.post("/api/v1/auth/register", json={
+                "email": "new@example.org", "password": password, "role": "student",
+            })
+            self.assertEqual(response.status_code, 422)
 
     def test_existing_password_still_works(self):
         response = self.client.post("/api/v1/auth/login", json={"email": "student@example.org", "password": "password123"})

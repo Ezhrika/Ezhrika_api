@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
+from app.core.subjects import SUBJECTS, canonical_subject
 from app.db.session import get_db
 from app.models.slot import Slot
 from app.models.tutor import TutorProfile
@@ -22,6 +23,12 @@ router = APIRouter(prefix="/api/v1/tutors", tags=["tutors"])
 @router.get("", response_model=list[TutorProfileRead], summary="Get all tutor profiles")
 def get_all_tutors(db: Annotated[Session, Depends(get_db)]) -> list[TutorProfile]:
     return list(db.scalars(select(TutorProfile).order_by(TutorProfile.id)).all())
+
+
+# Общий список допустимых предметов, без обращения к БД.
+@router.get("/subjects", response_model=list[str], summary="Get available subjects")
+def get_subjects() -> list[str]:
+    return list(SUBJECTS)
 
 
 # Получение собственного профиля репетитора (для личного кабинета).
@@ -68,6 +75,11 @@ def update_my_tutor_profile(
         )
 
     update_data = payload.model_dump(exclude_unset=True)
+    if payload.subject is not None:
+        canonical = canonical_subject(payload.subject)
+        if canonical is None and payload.subject != profile.subject:
+            raise HTTPException(status_code=422, detail="Choose a subject from the subject list.")
+        update_data["subject"] = canonical or profile.subject
     for field, value in update_data.items():
         if value is not None:
             setattr(profile, field, value)

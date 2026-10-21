@@ -2,6 +2,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.subjects import display_subject
+
 
 # Структура и проверка данных профиля репетитора в ответах API.
 class TutorProfileRead(BaseModel):
@@ -13,6 +15,11 @@ class TutorProfileRead(BaseModel):
     subject: str
     description: str
     timezone: str
+
+    @field_validator("subject")
+    @classmethod
+    def normalize_subject_for_display(cls, value: str) -> str:
+        return display_subject(value)
 
 
 # Данные для изменения собственного профиля репетитора.

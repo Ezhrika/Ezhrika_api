@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+from app.core.subjects import require_subject
 
 
 # Структура и проверка данных аккаунтов пользователей в ответах API.
@@ -14,6 +16,11 @@ class UserRead(BaseModel):
     created_at: datetime
 
 
+# Имя профиля доступно самому владельцу аккаунта для шапки сайта.
+class CurrentUserRead(UserRead):
+    name: str
+
+
 # Данные для регистрации нового пользователя.
 class UserCreate(BaseModel):
     email: EmailStr
@@ -22,11 +29,17 @@ class UserCreate(BaseModel):
     name: str = Field(default="", max_length=100)
     subject: str = Field(default="", max_length=100)
 
+    @model_validator(mode="after")
+    def validate_tutor_subject(self):
+        if self.role == "tutor":
+            self.subject = require_subject(self.subject)
+        return self
+
     @field_validator("password")
     @classmethod
-    def validate_password_bytes(cls, value: str) -> str:
-        if len(value.encode("utf-8")) > 72:
-            raise ValueError("Password must not exceed 72 UTF-8 bytes.")
+    def validate_password_characters(cls, value: str) -> str:
+        if not all("!" <= character <= "~" for character in value):
+            raise ValueError("Use Latin letters, digits and symbols without spaces.")
         return value
 
 

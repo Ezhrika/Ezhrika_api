@@ -1,6 +1,9 @@
 from datetime import datetime
 
 from pydantic import AliasPath, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import field_validator
+
+from app.core.subjects import display_subject
 
 
 # Структура и проверка данных записей на занятия в ответах API.
@@ -20,6 +23,11 @@ class BookingRead(BaseModel):
     question: str
     status: str
     created_at: datetime
+
+    @field_validator("subject")
+    @classmethod
+    def normalize_subject_for_display(cls, value: str) -> str:
+        return display_subject(value)
 
 
 # Ответ при успешной записи с возможным токеном отмены для гостя.
